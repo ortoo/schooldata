@@ -1,6 +1,7 @@
 import governorhub
 import logging
 import redis
+from redis.sentinel import Sentinel
 import os
 import loggly.handlers
 from datetime import datetime
@@ -17,6 +18,9 @@ requests_log.setLevel(logging.WARNING)
 REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', None)
+SENTINEL_HOST = os.environ.get('SENTINEL_HOST', None)
+SENTINEL_PORT = os.environ.get('SENTINEL_PORT', 26379)
+SENTINEL_MASTER = os.environ.get('SENTINEL_MASTER', 'base')
 
 LOGGLY_TOKEN = os.environ.get('LOGGLY_TOKEN', None)
 
@@ -63,7 +67,11 @@ def clear_queue(client):
       logging.exception(ex)
 
 def listen_for_requests():
-  client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
+  if SENTINEL_HOST is None:
+    client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
+  else:
+    sentinel = Sentinel([(SENTINEL_HOST, SENTINEL_PORT)])
+    client = sentinel.master_for(SENTINEL_MASTER)
 
   clear_queue(client)
 
