@@ -1,8 +1,7 @@
 FROM       quay.io/ortoo/chore-base
-MAINTAINER james@governorhub.com
 
 # Install python dependencies
-RUN        pip3 install beautifulsoup4 redis loggly-handler
+RUN        pip3 install loggly-handler gcloud
 
 
 # Add the files and set ownership
