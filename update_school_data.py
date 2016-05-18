@@ -55,13 +55,16 @@ def listen_for_requests():
             logging.info('Updating ' + schoolId)
             school = School.get(schoolId)
             update_school(school)
-            subscription.acknowledge([ackid])
             logging.info('Updated ' + schoolId)
           except Exception as ex:
             logging.error('Error updating data for school: ' + schoolId)
             logging.exception(ex)
         except Exception as ex:
           logging.exception(ex)
+        finally:
+          # ACK this here because even if an exception was thrown its unlikely we'll be able to handle it
+          # if we retried
+          subscription.acknowledge([ackid])
   except Exception as ex:
     logging.exception(ex)
 
